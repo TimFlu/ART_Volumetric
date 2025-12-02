@@ -61,6 +61,6 @@ SLURM output will be stored in `logs/slurm/`.
 - Loads LOOCV outputs  
 - Summarizes performance (recall, F1-score, specificity, early detection rate)    
 
-Exported figures can be saved into `figures/`.
+Exported figures are saved into `figures/`.
 
 
