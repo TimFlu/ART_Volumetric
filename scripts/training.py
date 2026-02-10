@@ -211,58 +211,6 @@ def custom_loss(y_true, y_pred, alpha_late, beta_fn, gamma_fp):
                 total += 0.5 * (yt - yp)  # Early replanning (smaller penalty)
     return total
 
-def create_evaluation_plots(summary_df, output_path):
-    """Create comprehensive evaluation plots"""
-    fig, axes = plt.subplots(2, 3, figsize=(18, 12))
-    
-    # F1 Score by variant
-    variant_f1 = summary_df.groupby('variant')['f1_outer'].agg(['mean', 'std'])
-    axes[0, 0].bar(variant_f1.index, variant_f1['mean'], yerr=variant_f1['std'])
-    axes[0, 0].set_title('F1 Score by Feature Variant')
-    axes[0, 0].set_ylabel('F1 Score')
-    
-    # Balanced Accuracy by variant
-    variant_ba = summary_df.groupby('variant')['ba_outer'].agg(['mean', 'std'])
-    axes[0, 1].bar(variant_ba.index, variant_ba['mean'], yerr=variant_ba['std'])
-    axes[0, 1].set_title('Balanced Accuracy by Feature Variant')
-    axes[0, 1].set_ylabel('Balanced Accuracy')
-    
-    # Average Detection Time
-    variant_det = summary_df.groupby('variant')['avg_det'].agg(['mean', 'std'])
-    axes[0, 2].bar(variant_det.index, variant_det['mean'], yerr=variant_det['std'])
-    axes[0, 2].set_title('Average Detection Time by Variant')
-    axes[0, 2].set_ylabel('Detection Time (Fractions)')
-    
-    # Hyperparameter analysis
-    if 'alpha_late' in summary_df.columns:
-        axes[1, 0].scatter(summary_df['alpha_late'], summary_df['f1_outer'], alpha=0.6)
-        axes[1, 0].set_xlabel('Alpha Late')
-        axes[1, 0].set_ylabel('F1 Score')
-        axes[1, 0].set_title('F1 vs Alpha Late Parameter')
-    
-    # Parameter correlations
-    param_cols = [col for col in summary_df.columns if 'param' in col.lower()]
-    if len(param_cols) > 0:
-        corr_data = summary_df[['f1_outer', 'ba_outer'] + param_cols].corr()
-        im = axes[1, 1].imshow(corr_data, cmap='coolwarm', vmin=-1, vmax=1)
-        axes[1, 1].set_xticks(range(len(corr_data.columns)))
-        axes[1, 1].set_xticklabels(corr_data.columns, rotation=45)
-        axes[1, 1].set_yticks(range(len(corr_data.columns)))
-        axes[1, 1].set_yticklabels(corr_data.columns)
-        axes[1, 1].set_title('Parameter Correlation Matrix')
-        plt.colorbar(im, ax=axes[1, 1])
-    
-    # Performance distribution
-    axes[1, 2].boxplot([summary_df[summary_df['variant'] == v]['f1_outer'].values 
-                       for v in summary_df['variant'].unique()],
-                      labels=summary_df['variant'].unique())
-    axes[1, 2].set_title('F1 Score Distribution by Variant')
-    axes[1, 2].set_ylabel('F1 Score')
-    
-    plt.tight_layout()
-    plt.savefig(os.path.join(output_path, f'{current_time}_comprehensive_evaluation.png'), dpi=300, bbox_inches='tight')
-    plt.close()
-
 def main():
     # Load the data
     DATA_PATH = './data'
@@ -293,14 +241,10 @@ def main():
     # More comprehensive hyperparameter grid
     loss_params_grid = list(product(
         [0.5, 1.0, 1.5, 2.0],  # alpha_late
-        [225, 300, 450, 600],  # beta_fn  
-        [150, 200, 300, 400]        # gamma_fp
+        [225, 300, 450],  # beta_fn  
+        [150, 200, 300]        # gamma_fp
     ))
-    # loss_params_grid = list(product(
-    #     [0.5, 1.0, 1.5, 2.0],  # alpha_late
-    #     [600],  # beta_fn  
-    #     [150, 200, 300, 400]        # gamma_fp
-    # ))
+
     
     # Filter invalid combinations
     loss_params_grid = [(a, b, g) for a, b, g in loss_params_grid if b > g]
@@ -416,9 +360,6 @@ def main():
     os.makedirs(save_folder, exist_ok=True)
     results_df.to_csv(os.path.join(save_folder, f'../{current_time}_loo_selection_results.csv'), index=False)
 
-
-    # Create comprehensive plots
-    # create_evaluation_plots(results_df, save_folder)
     
     # Individual patient plots
     for patient, pred in zip(patients, final_preds):
