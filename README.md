@@ -1,4 +1,5 @@
-# Interpretable Detection of Anatomical Change for Adaptive Radiotherapy (ART)
+# A simple and interpretable method to predict head and neck offline adaptation needs based on anatomical changes
+
 
 This repository contains the code and data used to develop and evaluate a simple, interpretable workflow for detecting clinically relevant anatomical change from daily imaging in head and neck radiotherapy. The pipeline consists of:
 
